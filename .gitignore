@@ -1,2 +1,32 @@
+# --- Variables de entorno: ignorar las reales, conservar las plantillas ---
+# (las excepciones con "!" van después de la regla general)
 .env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example
+
+# --- Secretos y copias locales con contraseñas reales ---
+secretos-locales/
+*.local.sql
+
+# --- Archivos de registro y temporales ---
 *.log
+*.tmp
+
+# --- Volúmenes locales y paquetes de entrega ---
+**/data/
+*.zip
+
+# --- Imágenes de Docker exportadas (GitHub rechaza archivos de más de 100 MB) ---
+*.tar
+
+# --- Dependencias de Node.js ---
+node_modules/
+
+# --- Resultados de pruebas ---
+coverage/
+
+# --- Notas personales ---
+notasgenerales.md

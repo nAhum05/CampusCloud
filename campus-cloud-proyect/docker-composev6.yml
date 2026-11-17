@@ -1,0 +1,78 @@
+# ============================================================
+#  docker-composev6.yml
+#  PRÁCTICA TEMPORAL · Proxy inverso con Nginx (enrutamiento por ruta)
+#
+#  Topología:
+#
+#      navegador ─:8080─► [ nginx-proxy ] ─┬─► app1 (whoami)
+#                                          └─► app2 (hello)
+#
+#  Solo Nginx publica puerto al host (8080). app1 y app2 viven
+#  únicamente en la red interna "proxy_net": no son accesibles
+#  directamente desde fuera, solo a través del proxy.
+#
+#  Levantar:  docker compose -f docker-composev6.yml up -d
+#  Ver logs:  docker compose -f docker-composev6.yml logs -f nginx-proxy
+#  Bajar:     docker compose -f docker-composev6.yml down
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  #  PROXY INVERSO (único punto de entrada)
+  # ----------------------------------------------------------
+  nginx-proxy:
+    image: nginx:1.27-alpine
+    container_name: campuscloud-nginx-proxy
+    restart: unless-stopped
+
+    ports:
+      - "8080:80"            # ÚNICO puerto expuesto al host
+
+    volumes:
+      # Montamos nuestra config desde el repo (solo lectura).
+      # Así se edita default.conf sin reconstruir la imagen.
+      - ../docker/nginx/conf.d:/etc/nginx/conf.d:ro
+
+    depends_on:
+      - app1
+      - app2
+
+    networks:
+      - proxy_net
+
+  # ----------------------------------------------------------
+  #  APP 1: Portal de Estudiantes (página estática, tema azul)
+  #  nginx:alpine sirve nuestro index.html montado desde el repo.
+  #  Sin "ports": NO se expone al host, solo red interna.
+  # ----------------------------------------------------------
+  app1:
+    image: nginx:1.27-alpine
+    container_name: campuscloud-app1
+    restart: unless-stopped
+    volumes:
+      - ../docker/nginx/apps/app1:/usr/share/nginx/html:ro
+    networks:
+      - proxy_net
+
+  # ----------------------------------------------------------
+  #  APP 2: Portal de Docentes (página estática, tema verde)
+  # ----------------------------------------------------------
+  app2:
+    image: nginx:1.27-alpine
+    container_name: campuscloud-app2
+    restart: unless-stopped
+    volumes:
+      - ../docker/nginx/apps/app2:/usr/share/nginx/html:ro
+    networks:
+      - proxy_net
+
+# ============================================================
+#  RED dedicada e interna de la práctica.
+#  NO es "external": se crea con 'up' y se borra con 'down',
+#  de modo que la práctica queda aislada del stack de BD.
+# ============================================================
+networks:
+  proxy_net:
+    name: campuscloud_proxy_net
+    driver: bridge
