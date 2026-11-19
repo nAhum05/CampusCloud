@@ -4,6 +4,7 @@ import express from "express";
 
 // Importar el router salud
 import saludRoutes from "./routes/salud.router.js";
+import catalogoRoutes from "./routes/catalogo.routes.js"
 
 //crea una aplicacion express, apartir de este objeto
 //se prodran configurar rutas y middlewares
@@ -15,5 +16,5 @@ app.use(express.json());
 
 // Registrar la ruta
 app.use(saludRoutes);
-
+app.use(catalogoRoutes);
 export default app;
